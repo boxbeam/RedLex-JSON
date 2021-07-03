@@ -64,17 +64,11 @@ public class RedLexJSON {
 		for (Token esc : string.allByName(TraversalOrder.SHALLOW, "escapeSequence")) {
 			String value;
 			char c = esc.getValue().charAt(1);
-			switch (c) {
-				case 'n':
-					value = "\n";
-					break;
-				case 't':
-					value = "\t";
-					break;
-				default:
-					value = "" + c;
-					break;
-			}
+			value = switch (c) {
+				case 'n' -> "\n";
+				case 't' -> "\t";
+				default -> "" + c;
+			};
 			esc.setValue(value);
 		}
 		return string.joinChildren("");
