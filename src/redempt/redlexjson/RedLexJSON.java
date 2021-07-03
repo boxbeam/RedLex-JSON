@@ -27,8 +27,8 @@ public class RedLexJSON {
 		Token token = getLexer().tokenize(input);
 		token.cull(TokenFilter.removeUnnamed(CullStrategy.LIFT_CHILDREN),
 				TokenFilter.removeStringLiterals(),
-				TokenFilter.byName(CullStrategy.DELETE_ALL, "sep"));
-		return parseJSON(token);
+				TokenFilter.byName(CullStrategy.LIFT_CHILDREN, "sep", "object"));
+		return parseJSON(token.getChildren()[0]);
 	}
 	
 	private static Object parseJSON(Token token) {
@@ -37,8 +37,6 @@ public class RedLexJSON {
 				return Long.parseLong(token.getValue());
 			case "decimal":
 				return Double.parseDouble(token.getValue());
-			case "null":
-				return null;
 			case "boolean":
 				return Boolean.parseBoolean(token.getValue());
 			case "string":
@@ -56,8 +54,9 @@ public class RedLexJSON {
 					map.put(processString(children[0]), parseJSON(children[1]));
 				}
 				return map;
+			default:
+				return null;
 		}
-		return null;
 	}
 	
 	private static String processString(Token string) {
@@ -69,6 +68,7 @@ public class RedLexJSON {
 				case 't' -> "\t";
 				default -> "" + c;
 			};
+			;
 			esc.setValue(value);
 		}
 		return string.joinChildren("");
