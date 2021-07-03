@@ -9,9 +9,7 @@ strChar ::= [^"]
 
 integer ::= [0-9]+
 decimal ::= [0-9]+ "." [0-9]+
-boolean ::= true | false
-true ::= "true"
-false ::= "false"
+boolean ::= "true" | "false"
 null ::= "null"
 
 list ::= "[" sep (object ("," sep object)*)? sep "]"

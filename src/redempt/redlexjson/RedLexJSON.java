@@ -25,8 +25,7 @@ public class RedLexJSON {
 	
 	public static Object parseJSON(String input) {
 		Token token = getLexer().tokenize(input);
-		token.cull(TokenFilter.removeEmpty(),
-				TokenFilter.removeUnnamed(CullStrategy.LIFT_CHILDREN),
+		token.cull(TokenFilter.removeUnnamed(CullStrategy.LIFT_CHILDREN),
 				TokenFilter.removeStringLiterals(),
 				TokenFilter.byName(CullStrategy.DELETE_ALL, "sep"));
 		return parseJSON(token);
