@@ -4,7 +4,6 @@ import redempt.redlex.bnf.BNFParser;
 import redempt.redlex.data.Token;
 import redempt.redlex.processing.CullStrategy;
 import redempt.redlex.processing.Lexer;
-import redempt.redlex.processing.TokenFilter;
 import redempt.redlex.processing.TraversalOrder;
 
 import java.util.ArrayList;
@@ -19,15 +18,15 @@ public class RedLexJSON {
 	private static Lexer getLexer() {
 		if (lexer == null) {
 			lexer = BNFParser.createLexer(RedLexJSON.class.getClassLoader().getResourceAsStream("json.bnf"));
+			lexer.setUnnamedRule(CullStrategy.LIFT_CHILDREN);
+			lexer.setRetainStringLiterals(false);
+			lexer.setRuleByName(CullStrategy.LIFT_CHILDREN, "sep", "object");
 		}
 		return lexer;
 	}
 	
 	public static Object parseJSON(String input) {
 		Token token = getLexer().tokenize(input);
-		token.cull(TokenFilter.removeUnnamed(CullStrategy.LIFT_CHILDREN),
-				TokenFilter.removeStringLiterals(),
-				TokenFilter.byName(CullStrategy.LIFT_CHILDREN, "sep", "object"));
 		return parseJSON(token.getChildren()[0]);
 	}
 	
