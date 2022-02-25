@@ -3,8 +3,8 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '6.0.0'
 }
 
-sourceCompatibility = 14
-targetCompatibility = 14
+sourceCompatibility = 16
+targetCompatibility = 16
 
 sourceSets {
     main {
@@ -19,9 +19,9 @@ sourceSets {
 
 repositories {
     mavenCentral()
-    maven { url 'https://jitpack.io' }
+    maven { url 'https://redempt.dev' }
 }
 
 dependencies {
-    implementation 'com.github.Redempt:RedLex:master'
+    implementation 'com.github.Redempt:RedLex:1.1'
 }

@@ -32,14 +32,10 @@ public class RedLexJSON {
 	
 	private static Object parseJSON(Token token) {
 		switch (token.getType().getName()) {
-			case "integer":
-				return Long.parseLong(token.getValue());
-			case "decimal":
-				return Double.parseDouble(token.getValue());
-			case "boolean":
-				return Boolean.parseBoolean(token.getValue());
-			case "string":
-				return processString(token);
+			case "integer": return Long.parseLong(token.getValue());
+			case "decimal": return Double.parseDouble(token.getValue());
+			case "boolean": return Boolean.parseBoolean(token.getValue());
+			case "string": return processString(token);
 			case "list":
 				List<Object> list = new ArrayList<>();
 				for (Token child : token.getChildren()) {
