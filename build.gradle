@@ -23,5 +23,5 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.Redempt:RedLex:1.1'
+    implementation 'com.github.Redempt:RedLex:1.3'
 }

@@ -1,70 +1,72 @@
 package redempt.redlexjson;
 
 import redempt.redlex.bnf.BNFParser;
-import redempt.redlex.data.Token;
+import redempt.redlex.parser.Parser;
 import redempt.redlex.processing.CullStrategy;
 import redempt.redlex.processing.Lexer;
-import redempt.redlex.processing.TraversalOrder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RedLexJSON {
+import static redempt.redlex.parser.ParserComponent.*;
 
-	private static Lexer lexer;
+public class RedLexJSON {
 	
-	private static Lexer getLexer() {
-		if (lexer == null) {
-			lexer = BNFParser.createLexer(RedLexJSON.class.getClassLoader().getResourceAsStream("json.bnf"));
+	private static Parser parser;
+	
+	private static synchronized Parser getParser() {
+		if (parser == null) {
+			Lexer lexer = BNFParser.createLexer(RedLexJSON.class.getResourceAsStream("/json.bnf"));
 			lexer.setUnnamedRule(CullStrategy.LIFT_CHILDREN);
 			lexer.setRetainStringLiterals(false);
 			lexer.setRuleByName(CullStrategy.LIFT_CHILDREN, "sep", "object");
+			
+			parser = Parser.create(lexer,
+				mapString("integer", Integer::parseInt),
+				mapString("decimal", Double::parseDouble),
+				mapString("boolean", Boolean::parseBoolean),
+				mapString("escapeSequence", s -> {
+					char c = s.charAt(1);
+					return switch (c) {
+						case 't' -> '\t';
+						case 'n' -> '\n';
+						default -> c;
+					};
+				}),
+				mapString("strChar", s -> s.charAt(0)),
+				mapChildren("string", c -> {
+					StringBuilder builder = new StringBuilder();
+					for (Object obj : c) {
+						builder.append((char) obj);
+					}
+					return builder.toString();
+				}),
+				mapToken("null", t -> null),
+				mapChildren("object", c -> c[0]),
+				mapChildren("list", c -> {
+					List<Object> list = new ArrayList<>();
+					Collections.addAll(list, c);
+					return list;
+				}),
+				mapChildren("mapEntry", c -> c),
+				mapChildren("map", c -> {
+					Map<String, Object> map = new HashMap<>();
+					for (Object o : c) {
+						Object[] pair = (Object[]) o;
+						map.put((String) pair[0], pair[1]);
+					}
+					return map;
+				})
+			);
 		}
-		return lexer;
+		return parser;
 	}
 	
 	public static Object parseJSON(String input) {
-		Token token = getLexer().tokenize(input);
-		return parseJSON(token.getChildren()[0]);
-	}
-	
-	private static Object parseJSON(Token token) {
-		switch (token.getType().getName()) {
-			case "integer": return Long.parseLong(token.getValue());
-			case "decimal": return Double.parseDouble(token.getValue());
-			case "boolean": return Boolean.parseBoolean(token.getValue());
-			case "string": return processString(token);
-			case "list":
-				List<Object> list = new ArrayList<>();
-				for (Token child : token.getChildren()) {
-					list.add(parseJSON(child));
-				}
-				return list;
-			case "map":
-				Map<String, Object> map = new HashMap<>();
-				for (Token child : token.getChildren()) {
-					Token[] children = child.getChildren();
-					map.put(processString(children[0]), parseJSON(children[1]));
-				}
-				return map;
-			default:
-				return null;
-		}
-	}
-	
-	private static String processString(Token string) {
-		for (Token esc : string.allByName(TraversalOrder.SHALLOW, "escapeSequence")) {
-			char c = esc.getValue().charAt(1);
-			String value = switch (c) {
-				case 'n' -> "\n";
-				case 't' -> "\t";
-				default -> "" + c;
-			};
-			esc.setValue(value);
-		}
-		return string.joinChildren("");
+		return getParser().parse(input);
 	}
 	
 }
